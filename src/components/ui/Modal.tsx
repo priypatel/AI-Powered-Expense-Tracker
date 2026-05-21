@@ -48,9 +48,6 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps): JSX.Ele
     if (!isOpen) return;
 
     const triggerElement = document.activeElement as HTMLElement | null;
-
-    document.addEventListener("keydown", handleEscape);
-    document.addEventListener("keydown", handleTab);
     document.body.style.overflow = "hidden";
 
     const firstFocusable = dialogRef.current?.querySelector<HTMLElement>(
@@ -59,10 +56,18 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps): JSX.Ele
     firstFocusable?.focus();
 
     return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.removeEventListener("keydown", handleTab);
       document.body.style.overflow = "";
       triggerElement?.focus();
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    document.addEventListener("keydown", handleEscape);
+    document.addEventListener("keydown", handleTab);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("keydown", handleTab);
     };
   }, [isOpen, handleEscape, handleTab]);
 
