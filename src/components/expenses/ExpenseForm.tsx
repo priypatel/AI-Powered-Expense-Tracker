@@ -4,7 +4,6 @@ import { useState, FormEvent, FocusEvent } from "react";
 import { CATEGORIES } from "@/types/index";
 import type { IExpense } from "@/types/index";
 import { Button } from "@/components/ui/Button";
-import { Spinner } from "@/components/ui/Spinner";
 
 interface ExpenseFormData {
   amount: number;
