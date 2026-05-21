@@ -2,7 +2,7 @@
 
 A full-stack expense management app with AI-assisted data entry, interactive dashboards, budget alerts, and CSV export. Built with Next.js 14 App Router, MongoDB, and the Gemini API.
 
-**Live:** https://your-app.vercel.app
+**Live:** https://ai-powered-expense-tracker-theta.vercel.app/
 
 ---
 
@@ -48,7 +48,7 @@ A full-stack expense management app with AI-assisted data entry, interactive das
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/ai-powered-expense-tracker.git
+git clone https://github.com/priypatel/AI-Powered-Expense-Tracker.git
 cd ai-powered-expense-tracker
 
 # 2. Install dependencies
@@ -131,16 +131,5 @@ src/
 ├── models/                  # Mongoose models — User, Expense, Budget
 └── types/                   # Shared TypeScript types
 ```
-
----
-
-## Deployment (Vercel)
-
-1. Push the repo to GitHub
-2. Import the project in [vercel.com](https://vercel.com)
-3. Add the four environment variables in **Project → Settings → Environment Variables**
-4. Deploy — Vercel auto-detects Next.js and runs `npm run build`
-
-> The app has no required build-time DB connection, so deployments are fast and cold-start safe.
 
 ---
