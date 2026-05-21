@@ -8,6 +8,7 @@ interface ExpenseFilters {
   month?: number;
   year?: number;
   page?: number;
+  limit?: number;
 }
 
 interface UseExpensesReturn {
@@ -44,6 +45,7 @@ export function useExpenses(): UseExpensesReturn {
       if (filters?.month) params.set("month", String(filters.month));
       if (filters?.year) params.set("year", String(filters.year));
       if (filters?.page) params.set("page", String(filters.page));
+      if (filters?.limit) params.set("limit", String(filters.limit));
 
       const res = await fetch(`/api/expenses?${params.toString()}`);
       const data = (await res.json()) as
