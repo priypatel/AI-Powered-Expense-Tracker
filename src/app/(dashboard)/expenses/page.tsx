@@ -77,6 +77,37 @@ export default function ExpensesPage(): JSX.Element {
     await fetchExpenses(buildFilters(filters));
   }
 
+  async function handleExport(): Promise<void> {
+    try {
+      const params = new URLSearchParams();
+      if (filters.month !== "") params.set("month", String(filters.month));
+      if (filters.year !== "") params.set("year", String(filters.year));
+      const url = `/api/expenses/export${params.toString() ? `?${params.toString()}` : ""}`;
+
+      const response = await fetch(url, { credentials: "include" });
+      if (!response.ok) throw new Error("Export failed");
+
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("Content-Disposition") ?? "";
+      const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : "expenses.csv";
+
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+
+      const rowCount = (await blob.text()).split("\n").length - 1;
+      showToast(`Exported ${rowCount} expense${rowCount !== 1 ? "s" : ""}`);
+    } catch {
+      showToast("Export failed", "error");
+    }
+  }
+
   async function handleDelete(id: string): Promise<void> {
     try {
       await deleteExpense(id);
@@ -111,7 +142,7 @@ export default function ExpensesPage(): JSX.Element {
       {/* Filters + Export */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ExpenseFilters filters={filters} onChange={setFilters} />
-        <Button variant="secondary" disabled title="Available in Phase 6">
+        <Button variant="secondary" onClick={() => void handleExport()}>
           Export CSV
         </Button>
       </div>
