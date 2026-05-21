@@ -8,6 +8,7 @@ import { ExpenseList } from "@/components/expenses/ExpenseList";
 import { ExpenseForm } from "@/components/expenses/ExpenseForm";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { AIExtractModal } from "@/components/expenses/AIExtractModal";
 
 interface Toast {
   id: number;
@@ -21,6 +22,7 @@ export default function ExpensesPage(): JSX.Element {
 
   const [filters, setFilters] = useState<FilterState>({ category: "", month: "", year: "" });
   const [modalOpen, setModalOpen] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<IExpense | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -98,8 +100,7 @@ export default function ExpensesPage(): JSX.Element {
         <div className="flex gap-2">
           <Button
             variant="secondary"
-            disabled
-            title="Available in Phase 3"
+            onClick={() => setAiModalOpen(true)}
           >
             AI Auto-Fill
           </Button>
@@ -135,6 +136,16 @@ export default function ExpensesPage(): JSX.Element {
           onCancel={closeModal}
         />
       </Modal>
+
+      {/* AI Extract Modal */}
+      <AIExtractModal
+        isOpen={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        onExpenseSaved={() => {
+          void fetchExpenses(buildFilters(filters));
+          showToast("Expense added");
+        }}
+      />
 
       {/* Toast notifications (placeholder — full implementation in Phase 7) */}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
