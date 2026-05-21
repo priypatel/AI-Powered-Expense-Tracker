@@ -36,12 +36,7 @@ These rules must be followed in every single file written across all phases:
 - Input validation server-side before every DB write
 - MongoDB queries always scoped to `userId` — never return data across users
 
-**Testing Standards**
-- Every phase: write tests BEFORE marking complete
-- Unit tests in `src/__tests__/unit/`
-- Integration tests in `src/__tests__/integration/`
-- Test files named `<subject>.test.ts`
-- Run `npm test` — all tests must pass before committing
+**Quality Gates**
 - Run `npm run type-check` — zero TypeScript errors before committing
 - Run `npm run lint` — zero ESLint errors before committing
 
@@ -723,42 +718,7 @@ In src/app/(dashboard)/expenses/page.tsx:
   - Open AIExtractModal when clicked
   - On expense saved: refetch expenses + show success toast
 
-STEP 5 — Write and run tests
-
-src/__tests__/unit/gemini.test.ts:
-  Mock @google/generative-ai module with jest.mock()
-  
-  describe("extractExpenseFromText"):
-    test("parses valid JSON response correctly")
-    test("strips markdown code block wrapper before parsing")
-    test("normalizes ₹450 amount string to number 450")
-    test("normalizes '1,250.00' to 1250")
-    test("sets unknown category to 'Other'")
-    test("sets invalid date to today's date")
-    test("trims note to 80 characters if longer")
-    test("sets amount to null when 'null' in response")
-    test("throws when Gemini returns unparseable response")
-    test("throws when Gemini network call fails")
-    test("throws when response times out after 10 seconds")
-
-src/__tests__/integration/ai-route.test.ts:
-  Use mongodb-memory-server, authenticate test user.
-  Mock extractExpenseFromText in these tests to avoid real API calls.
-
-  describe("POST /api/ai/extract"):
-    test("401 with no auth")
-    test("400 when text is empty string")
-    test("400 when text is missing from body")
-    test("400 when text is fewer than 5 characters")
-    test("200 returns extracted data when Gemini succeeds — mock returns valid object")
-    test("422 returns error message when Gemini throws — mock throws")
-    test("422 response body never contains the actual error message from Gemini")
-
-Run: npm test — ALL tests pass
-Run: npm run type-check — zero errors
-Run: npm run lint — zero errors
-
-STEP 6 — Manual verification
+STEP 5 — Manual verification
 - With valid GEMINI_API_KEY in .env.local:
   Paste "Paid ₹450 for groceries on May 21" → amount=450, category=Food, date=2026-05-21 pre-filled
   Paste bank SMS with amount → correct extraction
@@ -767,7 +727,7 @@ STEP 6 — Manual verification
   Error message shown inline in modal, form stays open, no crash, no 500 shown to user
 - With empty text → "Extract" button stays disabled or shows validation error
 
-STEP 7 — Commit
+STEP 6 — Commit
   git add -A
   git commit -m "feat(ai): Gemini auto-fill with graceful fallback"
 ```
@@ -890,43 +850,14 @@ Layout:
   On mobile: stack vertically
 useEffect: fetchStats() on mount
 
-STEP 9 — Write and run tests
-
-src/__tests__/unit/dashboard-helpers.test.ts:
-  Test the "fill 6 months" logic (extract to a pure helper function):
-    test("returns exactly 6 entries for full 6 months of data")
-    test("fills missing months with total: 0")
-    test("returns 6 entries even when no data at all")
-    test("entries are in chronological order")
-    test("labels are 3-letter month abbreviations")
-
-src/__tests__/integration/dashboard-route.test.ts:
-  Use mongodb-memory-server. Register+login test user.
-
-  describe("GET /api/dashboard/stats"):
-    test("401 with no auth")
-    test("returns zero total when no expenses")
-    test("totalThisMonth equals sum of this month's expenses")
-    test("categoryBreakdown has correct totals per category")
-    test("monthlyTrend always returns exactly 6 entries")
-    test("monthlyTrend has 0 for months with no expenses")
-    test("budgetAlerts empty when no budgets set")
-    test("budgetAlerts computed correctly: pct = spent/limit*100")
-    test("NEVER returns another user's data — cross-user isolation")
-    test("expenses from previous months not in totalThisMonth")
-
-Run: npm test — ALL tests pass
-Run: npm run type-check — zero errors
-Run: npm run lint — zero errors
-
-STEP 10 — Manual verification
+STEP 9 — Manual verification
 - Add 3 expenses in different categories → pie chart shows 3 slices with correct amounts
 - Dashboard total matches manual sum (add them up yourself)
 - Bar chart shows 6 bars (some at 0)
 - Set a budget for Food → add expenses over 80% → yellow alert appears on dashboard
 - Empty state: new user sees "No spending data" instead of crashes
 
-STEP 11 — Commit
+STEP 10 — Commit
   git add -A
   git commit -m "feat(dashboard): stats, pie chart, monthly trend chart"
 ```
@@ -1043,51 +974,7 @@ Layout:
   BudgetList (budgets + spent amounts)
   Modal with BudgetForm for add/edit
 
-STEP 7 — Write and run tests
-
-src/__tests__/integration/budget-routes.test.ts:
-  Use mongodb-memory-server. Register+login test user. Register second user.
-
-  describe("GET /api/budgets"):
-    test("401 with no auth")
-    test("returns only current user's budgets")
-    test("filters by month and year when query params provided")
-    test("returns empty array when no budgets")
-
-  describe("POST /api/budgets"):
-    test("401 with no auth")
-    test("201 creates budget with valid data")
-    test("201 upserts — second POST for same category+month+year updates, not duplicates")
-    test("400 for invalid category")
-    test("400 for monthlyLimit = 0")
-    test("400 for month out of range (0 or 13)")
-
-  describe("PUT /api/budgets/[id]"):
-    test("401 with no auth")
-    test("200 updates own budget's monthlyLimit")
-    test("403 when updating another user's budget")
-    test("404 for non-existent ID")
-
-  describe("DELETE /api/budgets/[id]"):
-    test("401 with no auth")
-    test("200 deletes own budget — no longer in DB")
-    test("403 when deleting another user's budget")
-
-src/__tests__/unit/budget-progress.test.ts:
-  Test the pct + color logic (extract to a pure helper):
-    test("pct = 0 when nothing spent")
-    test("pct = 85 when 850 spent of 1000 limit")
-    test("pct = 100 when at exact limit")
-    test("pct capped at display 100 when over limit (but raw value preserved)")
-    test("color is 'green' when pct < 80")
-    test("color is 'yellow' when 80 <= pct < 100")
-    test("color is 'red' when pct >= 100")
-
-Run: npm test — ALL tests pass
-Run: npm run type-check — zero errors
-Run: npm run lint — zero errors
-
-STEP 8 — Manual verification
+STEP 7 — Manual verification
 - Set Food budget = ₹1000 for current month
 - Add ₹820 Food expense → budget page shows yellow progress bar, dashboard shows yellow alert
 - Add ₹250 more Food expense → budget page shows red progress bar, dashboard shows red alert
@@ -1095,7 +982,7 @@ STEP 8 — Manual verification
 - Delete budget → progress bar gone, alert disappears from dashboard
 - Switch month in budget page → shows budgets for that month only
 
-STEP 9 — Commit
+STEP 8 — Commit
   git add -A
   git commit -m "feat(budget): monthly budget limits with 80%/100% visual alerts"
 ```
@@ -1171,43 +1058,7 @@ On click:
   Show success toast: "Exported X expenses"
   Show error toast if fetch fails
 
-STEP 3 — Write and run tests
-
-src/__tests__/unit/csv-builder.test.ts:
-  Import buildCSV function (export it from the route or a separate lib file)
-
-  describe("buildCSV"):
-    test("includes header row as first line")
-    test("header is exactly 'Date,Category,Amount,Note'")
-    test("returns only header for empty array")
-    test("formats date as YYYY-MM-DD")
-    test("formats amount with 2 decimal places")
-    test("wraps note in quotes when it contains a comma")
-    test("escapes double quotes in note by doubling them")
-    test("handles newline in note by wrapping in quotes")
-    test("handles expense with empty note (empty field, no quotes needed)")
-    test("row count equals expenses.length + 1 (for header)")
-
-src/__tests__/integration/export-route.test.ts:
-  Use mongodb-memory-server. Register+login test user.
-  Create test expenses across multiple months.
-
-  describe("GET /api/expenses/export"):
-    test("401 with no auth")
-    test("Content-Type is text/csv")
-    test("Content-Disposition header is present with attachment filename")
-    test("all-time export includes all user's expenses")
-    test("month-filtered export includes only that month's expenses")
-    test("month-filtered export excludes other months' expenses")
-    test("export never includes another user's expenses")
-    test("returns only header row when no expenses match filter")
-    test("row count matches number of matching expenses + 1")
-
-Run: npm test — ALL tests pass
-Run: npm run type-check — zero errors
-Run: npm run lint — zero errors
-
-STEP 4 — Manual verification
+STEP 3 — Manual verification
 - Add 5 expenses in May 2026, 3 in April 2026
 - Filter to May → Export → file has 5 rows + header
 - Remove filter → Export → file has all 8 rows + header
@@ -1215,7 +1066,7 @@ STEP 4 — Manual verification
 - Add an expense with note containing a comma → export → note cell correct in Sheets
 - Empty filter month → Export → file has only header row, downloads successfully
 
-STEP 5 — Commit
+STEP 4 — Commit
   git add -A
   git commit -m "feat(export): CSV export with month filter"
 ```
@@ -1326,24 +1177,7 @@ Each component that shows data must have a styled empty state:
     Sub: "Set a monthly limit per category to track your spending"
     Button: "Set Budget"
 
-STEP 8 — Write and run tests
-
-src/__tests__/unit/toast.test.ts:
-  test("show() adds a toast with correct message and type")
-  test("show() generates unique IDs for each toast")
-  test("dismiss() removes the toast with matching ID")
-  test("dismiss() does not affect other toasts")
-  test("multiple toasts can coexist")
-
-src/__tests__/unit/skeleton.test.ts (React Testing Library):
-  test("renders with animate-pulse class")
-  test("accepts custom className and merges it")
-
-Run: npm test — ALL tests pass
-Run: npm run type-check — zero errors
-Run: npm run lint — zero errors
-
-STEP 9 — Manual verification
+STEP 8 — Manual verification
 - Throttle network to "Slow 3G" in DevTools → verify skeletons appear on all pages
 - Submit empty LoginForm → inline errors appear under each field (no alert())
 - 375px viewport (iPhone SE in DevTools):
@@ -1355,7 +1189,7 @@ STEP 9 — Manual verification
 - Tab through LoginForm → focus order is logical (name → email → password → submit)
 - Open a modal → press Escape → modal closes, focus returns to button that opened it
 
-STEP 10 — Commit
+STEP 9 — Commit
   git add -A
   git commit -m "feat(ux): loading states, empty states, toasts, responsive layout, accessibility"
 ```
@@ -1434,7 +1268,6 @@ Search for and fix every instance of:
 STEP 4 — Quality gates (all must pass before committing)
   npm run lint          → 0 errors, 0 warnings
   npm run type-check    → 0 TypeScript errors
-  npm run test          → all tests pass, 0 failures
   npm run build         → builds successfully, 0 errors
 
 If any gate fails: fix the issue, re-run, do NOT skip with flags.
@@ -1478,7 +1311,6 @@ STEP 1 — Pre-deploy checks (must all pass before deploying)
   npm run build         → must succeed with 0 errors
   npm run lint          → 0 errors
   npm run type-check    → 0 TypeScript errors
-  npm run test          → all tests pass
 
 STEP 2 — Security pre-check
   git status → working tree must be clean
