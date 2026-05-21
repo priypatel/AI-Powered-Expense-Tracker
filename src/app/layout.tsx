@@ -14,8 +14,11 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Expense Tracker",
-  description: "AI-powered personal expense tracker",
+  title: {
+    default: "ExpenseAI",
+    template: "%s | ExpenseAI",
+  },
+  description: "AI-powered personal expense tracker — track, analyze, and manage your spending",
 };
 
 export default function RootLayout({

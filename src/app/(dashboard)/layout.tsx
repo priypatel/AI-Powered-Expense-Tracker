@@ -2,8 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyJWT } from "@/lib/auth";
 import { AuthProvider } from "@/components/layout/AuthProvider";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Navbar } from "@/components/layout/Navbar";
+import { ToastProvider } from "@/components/layout/ToastProvider";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 
 export default function DashboardLayout({
@@ -22,7 +21,9 @@ export default function DashboardLayout({
 
   return (
     <AuthProvider>
-      <DashboardShell>{children}</DashboardShell>
+      <ToastProvider>
+        <DashboardShell>{children}</DashboardShell>
+      </ToastProvider>
     </AuthProvider>
   );
 }

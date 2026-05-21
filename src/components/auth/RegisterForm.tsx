@@ -73,36 +73,40 @@ export function RegisterForm(): JSX.Element {
         type="text"
         autoComplete="name"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => { setName(e.target.value); setErrors((prev) => ({ ...prev, name: undefined })); }}
         error={errors.name}
         disabled={loading}
+        aria-required="true"
       />
       <Input
         label="Email"
         type="email"
         autoComplete="email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(e) => { setEmail(e.target.value); setErrors((prev) => ({ ...prev, email: undefined })); }}
         error={errors.email}
         disabled={loading}
+        aria-required="true"
       />
       <Input
         label="Password"
         type="password"
         autoComplete="new-password"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(e) => { setPassword(e.target.value); setErrors((prev) => ({ ...prev, password: undefined })); }}
         error={errors.password}
         disabled={loading}
+        aria-required="true"
       />
       <Input
         label="Confirm password"
         type="password"
         autoComplete="new-password"
         value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
+        onChange={(e) => { setConfirmPassword(e.target.value); setErrors((prev) => ({ ...prev, confirmPassword: undefined })); }}
         error={errors.confirmPassword}
         disabled={loading}
+        aria-required="true"
       />
       <Button type="submit" loading={loading} className="w-full mt-2">
         Create account

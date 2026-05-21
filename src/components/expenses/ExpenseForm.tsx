@@ -112,11 +112,12 @@ export function ExpenseForm({ initialData, onSubmit, onCancel }: ExpenseFormProp
           min="0.01"
           step="0.01"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => { setAmount(e.target.value); setErrors((prev) => ({ ...prev, amount: undefined })); }}
           onBlur={(e: FocusEvent<HTMLInputElement>) => handleBlur("amount", e.target.value)}
           className={inputClass(!!errors.amount)}
           disabled={submitting}
           placeholder="0.00"
+          aria-required="true"
         />
         {errors.amount && <p className="mt-1 text-xs text-red-600">{errors.amount}</p>}
       </div>
@@ -128,10 +129,11 @@ export function ExpenseForm({ initialData, onSubmit, onCancel }: ExpenseFormProp
         <select
           id="ef-category"
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e) => { setCategory(e.target.value); setErrors((prev) => ({ ...prev, category: undefined })); }}
           onBlur={(e: FocusEvent<HTMLSelectElement>) => handleBlur("category", e.target.value)}
           className={inputClass(!!errors.category)}
           disabled={submitting}
+          aria-required="true"
         >
           <option value="">Select category</option>
           {CATEGORIES.map((cat) => (
@@ -151,10 +153,11 @@ export function ExpenseForm({ initialData, onSubmit, onCancel }: ExpenseFormProp
           id="ef-date"
           type="date"
           value={date}
-          onChange={(e) => setDate(e.target.value)}
+          onChange={(e) => { setDate(e.target.value); setErrors((prev) => ({ ...prev, date: undefined })); }}
           onBlur={(e: FocusEvent<HTMLInputElement>) => handleBlur("date", e.target.value)}
           className={inputClass(!!errors.date)}
           disabled={submitting}
+          aria-required="true"
         />
         {errors.date && <p className="mt-1 text-xs text-red-600">{errors.date}</p>}
       </div>

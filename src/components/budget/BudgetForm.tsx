@@ -104,9 +104,10 @@ export function BudgetForm({
           <select
             id="bf-category"
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e) => { setCategory(e.target.value); setErrors((prev) => ({ ...prev, category: undefined })); }}
             className={inputClass(!!errors.category)}
             disabled={submitting}
+            aria-required="true"
           >
             <option value="">Select category</option>
             {availableCategories.map((c) => (
@@ -129,10 +130,11 @@ export function BudgetForm({
           min="1"
           step="0.01"
           value={monthlyLimit}
-          onChange={(e) => setMonthlyLimit(e.target.value)}
+          onChange={(e) => { setMonthlyLimit(e.target.value); setErrors((prev) => ({ ...prev, monthlyLimit: undefined })); }}
           className={inputClass(!!errors.monthlyLimit)}
           disabled={submitting}
           placeholder="e.g. 5000"
+          aria-required="true"
         />
         {errors.monthlyLimit && (
           <p className="mt-1 text-xs text-red-600">{errors.monthlyLimit}</p>

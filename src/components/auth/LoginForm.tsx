@@ -53,18 +53,20 @@ export function LoginForm(): JSX.Element {
         type="email"
         autoComplete="email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(e) => { setEmail(e.target.value); setErrors((prev) => ({ ...prev, email: undefined })); }}
         error={errors.email}
         disabled={loading}
+        aria-required="true"
       />
       <Input
         label="Password"
         type="password"
         autoComplete="current-password"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(e) => { setPassword(e.target.value); setErrors((prev) => ({ ...prev, password: undefined })); }}
         error={errors.password}
         disabled={loading}
+        aria-required="true"
       />
       <Button type="submit" loading={loading} className="w-full mt-2">
         Sign in

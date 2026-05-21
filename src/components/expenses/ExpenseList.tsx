@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { IExpense } from "@/types/index";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
 import type { Category } from "@/types/index";
 
 interface ExpenseListProps {
@@ -11,6 +12,8 @@ interface ExpenseListProps {
   loading?: boolean;
   onEdit: (expense: IExpense) => void;
   onDelete: (id: string) => void;
+  hasFilters?: boolean;
+  onAddExpense?: () => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -32,11 +35,11 @@ function formatAmount(amount: number): string {
 function SkeletonRow(): JSX.Element {
   return (
     <tr>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <td key={i} className="px-4 py-3">
-          <div className="h-4 animate-pulse rounded bg-gray-200" />
-        </td>
-      ))}
+      <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-5 w-24 rounded-full" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-4 w-32" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-7 w-24" /></td>
     </tr>
   );
 }
@@ -44,9 +47,57 @@ function SkeletonRow(): JSX.Element {
 function SkeletonCard(): JSX.Element {
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm space-y-3">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="h-4 animate-pulse rounded bg-gray-200" />
-      ))}
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
+        <Skeleton className="h-4 w-16" />
+      </div>
+      <Skeleton className="h-4 w-48" />
+      <Skeleton className="h-7 w-28" />
+    </div>
+  );
+}
+
+function EmptyState({
+  hasFilters,
+  onAddExpense,
+}: {
+  hasFilters: boolean;
+  onAddExpense?: () => void;
+}): JSX.Element {
+  return (
+    <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 px-6 text-center">
+      <div className="rounded-full bg-gray-100 p-3">
+        <svg
+          className="h-8 w-8 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+          />
+        </svg>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-gray-700">No expenses found</p>
+        <p className="mt-0.5 text-xs text-gray-500">
+          {hasFilters
+            ? "Try adjusting your filters to see more results"
+            : "Add your first expense to get started"}
+        </p>
+      </div>
+      {!hasFilters && onAddExpense && (
+        <Button size="sm" onClick={onAddExpense}>
+          Add Expense
+        </Button>
+      )}
     </div>
   );
 }
@@ -56,6 +107,8 @@ export function ExpenseList({
   loading = false,
   onEdit,
   onDelete,
+  hasFilters = false,
+  onAddExpense,
 }: ExpenseListProps): JSX.Element {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
@@ -86,13 +139,7 @@ export function ExpenseList({
   }
 
   if (expenses.length === 0) {
-    return (
-      <div className="flex min-h-[200px] items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50">
-        <p className="text-sm text-gray-500 text-center px-4">
-          No expenses found. Try adjusting your filters or add a new expense.
-        </p>
-      </div>
-    );
+    return <EmptyState hasFilters={hasFilters} onAddExpense={onAddExpense} />;
   }
 
   return (
@@ -138,6 +185,7 @@ export function ExpenseList({
                           onDelete(expense._id);
                           setConfirmingId(null);
                         }}
+                        aria-label="Confirm delete expense"
                       >
                         Yes
                       </Button>
@@ -145,19 +193,26 @@ export function ExpenseList({
                         size="sm"
                         variant="ghost"
                         onClick={() => setConfirmingId(null)}
+                        aria-label="Cancel delete"
                       >
                         No
                       </Button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => onEdit(expense)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onEdit(expense)}
+                        aria-label={`Edit expense — ${formatAmount(expense.amount)}`}
+                      >
                         Edit
                       </Button>
                       <Button
                         size="sm"
                         variant="danger"
                         onClick={() => setConfirmingId(expense._id)}
+                        aria-label={`Delete expense — ${formatAmount(expense.amount)}`}
                       >
                         Delete
                       </Button>
@@ -189,7 +244,7 @@ export function ExpenseList({
               </span>
             </div>
             {expense.note && (
-              <p className="mt-2 text-sm text-gray-500 line-clamp-2">{expense.note}</p>
+              <p className="mt-2 text-sm italic text-gray-500 line-clamp-2">{expense.note}</p>
             )}
             <div className="mt-3 flex gap-2">
               {confirmingId === expense._id ? (
@@ -202,22 +257,34 @@ export function ExpenseList({
                       onDelete(expense._id);
                       setConfirmingId(null);
                     }}
+                    aria-label="Confirm delete expense"
                   >
                     Yes
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setConfirmingId(null)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setConfirmingId(null)}
+                    aria-label="Cancel delete"
+                  >
                     No
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button size="sm" variant="ghost" onClick={() => onEdit(expense)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onEdit(expense)}
+                    aria-label={`Edit expense — ${formatAmount(expense.amount)}`}
+                  >
                     Edit
                   </Button>
                   <Button
                     size="sm"
                     variant="danger"
                     onClick={() => setConfirmingId(expense._id)}
+                    aria-label={`Delete expense — ${formatAmount(expense.amount)}`}
                   >
                     Delete
                   </Button>

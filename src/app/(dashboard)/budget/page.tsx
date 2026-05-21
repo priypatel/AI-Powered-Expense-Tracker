@@ -137,6 +137,7 @@ export default function BudgetPage(): JSX.Element {
         spentByCategory={spentByCategory}
         onEdit={openEditModal}
         onDelete={handleDelete}
+        onAddBudget={openAddModal}
       />
 
       <Modal

@@ -47,6 +47,8 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps): JSX.Ele
   useEffect(() => {
     if (!isOpen) return;
 
+    const triggerElement = document.activeElement as HTMLElement | null;
+
     document.addEventListener("keydown", handleEscape);
     document.addEventListener("keydown", handleTab);
     document.body.style.overflow = "hidden";
@@ -60,6 +62,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps): JSX.Ele
       document.removeEventListener("keydown", handleEscape);
       document.removeEventListener("keydown", handleTab);
       document.body.style.overflow = "";
+      triggerElement?.focus();
     };
   }, [isOpen, handleEscape, handleTab]);
 

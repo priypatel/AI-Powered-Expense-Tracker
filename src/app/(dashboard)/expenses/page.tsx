@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { IExpense } from "@/types/index";
 import { useExpenses } from "@/hooks/useExpenses";
+import { useToast } from "@/hooks/useToast";
 import { ExpenseFilters, type FilterState } from "@/components/expenses/ExpenseFilters";
 import { ExpenseList } from "@/components/expenses/ExpenseList";
 import { ExpenseForm } from "@/components/expenses/ExpenseForm";
@@ -10,27 +11,15 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { AIExtractModal } from "@/components/expenses/AIExtractModal";
 
-interface Toast {
-  id: number;
-  message: string;
-  type: "success" | "error";
-}
-
 export default function ExpensesPage(): JSX.Element {
   const { expenses, total, loading, fetchExpenses, createExpense, updateExpense, deleteExpense } =
     useExpenses();
+  const { show } = useToast();
 
   const [filters, setFilters] = useState<FilterState>({ category: "", month: "", year: "" });
   const [modalOpen, setModalOpen] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<IExpense | null>(null);
-  const [toasts, setToasts] = useState<Toast[]>([]);
-
-  function showToast(message: string, type: "success" | "error" = "success"): void {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3000);
-  }
 
   const buildFilters = useCallback(
     (state: FilterState) => ({
@@ -68,13 +57,23 @@ export default function ExpensesPage(): JSX.Element {
   }): Promise<void> {
     if (editingExpense) {
       await updateExpense(editingExpense._id, data);
-      showToast("Expense updated");
+      show("Expense updated");
     } else {
       await createExpense(data);
-      showToast("Expense added");
+      show("Expense added");
     }
     closeModal();
     await fetchExpenses(buildFilters(filters));
+  }
+
+  async function handleDelete(id: string): Promise<void> {
+    try {
+      await deleteExpense(id);
+      show("Expense deleted");
+      await fetchExpenses(buildFilters(filters));
+    } catch {
+      show("Failed to delete expense", "error");
+    }
   }
 
   async function handleExport(): Promise<void> {
@@ -102,21 +101,14 @@ export default function ExpensesPage(): JSX.Element {
       URL.revokeObjectURL(objectUrl);
 
       const rowCount = (await blob.text()).split("\n").length - 1;
-      showToast(`Exported ${rowCount} expense${rowCount !== 1 ? "s" : ""}`);
+      show(`Exported ${rowCount} expense${rowCount !== 1 ? "s" : ""}`);
     } catch {
-      showToast("Export failed", "error");
+      show("Export failed", "error");
     }
   }
 
-  async function handleDelete(id: string): Promise<void> {
-    try {
-      await deleteExpense(id);
-      showToast("Expense deleted");
-      await fetchExpenses(buildFilters(filters));
-    } catch {
-      showToast("Failed to delete expense", "error");
-    }
-  }
+  const hasFilters =
+    filters.category !== "" || filters.month !== "" || filters.year !== "";
 
   return (
     <div className="space-y-6">
@@ -129,10 +121,7 @@ export default function ExpensesPage(): JSX.Element {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => setAiModalOpen(true)}
-          >
+          <Button variant="secondary" onClick={() => setAiModalOpen(true)}>
             AI Auto-Fill
           </Button>
           <Button onClick={openAddModal}>Add Expense</Button>
@@ -153,6 +142,8 @@ export default function ExpensesPage(): JSX.Element {
         loading={loading}
         onEdit={openEditModal}
         onDelete={handleDelete}
+        hasFilters={hasFilters}
+        onAddExpense={openAddModal}
       />
 
       {/* Add / Edit Modal */}
@@ -174,23 +165,9 @@ export default function ExpensesPage(): JSX.Element {
         onClose={() => setAiModalOpen(false)}
         onExpenseSaved={() => {
           void fetchExpenses(buildFilters(filters));
-          showToast("Expense added");
+          show("Expense added");
         }}
       />
-
-      {/* Toast notifications (placeholder — full implementation in Phase 7) */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`rounded-lg px-4 py-3 text-sm text-white shadow-lg animate-in slide-in-from-right duration-300 ${
-              toast.type === "error" ? "bg-red-600" : "bg-green-600"
-            }`}
-          >
-            {toast.message}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

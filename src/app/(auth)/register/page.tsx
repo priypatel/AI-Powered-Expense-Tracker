@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 
 export const metadata: Metadata = {
-  title: "Create account — Expense Tracker",
-  description: "Create a free account to start tracking your expenses",
+  title: "Register",
+  description: "Create your account",
 };
 
 export default function RegisterPage(): JSX.Element {

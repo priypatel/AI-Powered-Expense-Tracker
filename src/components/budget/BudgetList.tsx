@@ -3,12 +3,14 @@
 import { useState } from "react";
 import type { IBudget, Category } from "@/types/index";
 import { CATEGORY_COLORS } from "@/types/index";
+import { Button } from "@/components/ui/Button";
 
 interface BudgetListProps {
   budgets: IBudget[];
   spentByCategory: Record<string, number>;
   onEdit: (budget: IBudget) => void;
   onDelete: (id: string) => void;
+  onAddBudget?: () => void;
 }
 
 function formatINR(n: number): string {
@@ -20,13 +22,40 @@ export function BudgetList({
   spentByCategory,
   onEdit,
   onDelete,
+  onAddBudget,
 }: BudgetListProps): JSX.Element {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   if (budgets.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-200 bg-white px-6 py-12 text-center text-sm text-gray-400">
-        No budgets set for this month. Click &ldquo;Set Budget&rdquo; to add one.
+      <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-gray-200 bg-white px-6 text-center">
+        <div className="rounded-full bg-gray-100 p-3">
+          <svg
+            className="h-8 w-8 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-700">No budgets set for this period</p>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Set a monthly limit per category to track your spending
+          </p>
+        </div>
+        {onAddBudget && (
+          <Button size="sm" onClick={onAddBudget}>
+            Set Budget
+          </Button>
+        )}
       </div>
     );
   }

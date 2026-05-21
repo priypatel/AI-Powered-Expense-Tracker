@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/components/layout/AuthProvider";
 import { Button } from "@/components/ui/Button";
 
@@ -9,6 +10,18 @@ interface NavbarProps {
 
 export function Navbar({ onMenuClick }: NavbarProps): JSX.Element {
   const { user, logout } = useAuth();
+  const [confirming, setConfirming] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout(): Promise<void> {
+    setLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setLoggingOut(false);
+      setConfirming(false);
+    }
+  }
 
   return (
     <header className="fixed inset-x-0 top-0 z-10 flex h-16 items-center border-b border-gray-200 bg-white px-4 md:left-64">
@@ -26,13 +39,37 @@ export function Navbar({ onMenuClick }: NavbarProps): JSX.Element {
           />
         </svg>
       </button>
+
       <div className="flex flex-1 items-center justify-end gap-4">
         {user && (
           <span className="hidden text-sm text-gray-600 sm:block">{user.name}</span>
         )}
-        <Button variant="ghost" size="sm" onClick={logout}>
-          Logout
-        </Button>
+
+        {confirming ? (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Log out?</span>
+            <Button
+              size="sm"
+              variant="danger"
+              loading={loggingOut}
+              onClick={() => void handleLogout()}
+            >
+              Yes, log out
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={loggingOut}
+              onClick={() => setConfirming(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <Button variant="ghost" size="sm" onClick={() => setConfirming(true)}>
+            Logout
+          </Button>
+        )}
       </div>
     </header>
   );
